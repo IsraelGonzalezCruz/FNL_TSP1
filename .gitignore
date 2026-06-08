@@ -72,3 +72,7 @@ google-services.json.meta
 GoogleService-Info.plist
 **/google-services.json
 
+# ---- TMP: ejemplos opcionales (no se necesitan para el examen) ----
+Assets/TextMesh Pro/Examples & Extras/
+Assets/TextMesh Pro/Examples & Extras.meta
+
