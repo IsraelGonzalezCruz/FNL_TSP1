@@ -52,3 +52,23 @@ sysinfo.txt
 # OS
 .DS_Store
 Thumbs.db
+
+# ---- SDKs pesados (se importan en el momento, NO se versionan) ----
+/[Aa]ssets/Firebase/
+/[Aa]ssets/Firebase.meta
+/[Aa]ssets/Vuforia/
+/[Aa]ssets/Vuforia.meta
+/[Aa]ssets/VuforiaConfiguration*
+/[Aa]ssets/Resources/VuforiaConfiguration*
+/[Aa]ssets/ExternalDependencyManager/
+/[Aa]ssets/ExternalDependencyManager.meta
+/[Aa]ssets/Plugins/Android/
+/[Aa]ssets/GoogleVR/
+/[Aa]ssets/Editor Default Resources/
+
+# ---- Secretos: NUNCA a repo publico ----
+google-services.json
+google-services.json.meta
+GoogleService-Info.plist
+**/google-services.json
+

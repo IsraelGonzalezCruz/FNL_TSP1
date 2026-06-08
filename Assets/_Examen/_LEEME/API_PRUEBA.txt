@@ -1,0 +1,17 @@
+API DE PRUEBA - Servicio Web (P5)
+==================================
+
+Endpoint principal (Yu-Gi-Oh! YGOPRODeck, REST publico, sin API key):
+  https://db.ygoprodeck.com/api/v7/cardinfo.php?name=Dark Magician
+
+Respuesta: JSON con un arreglo "data" -> cada carta trae:
+  name, type, desc, atk, def, level
+
+Ya cableado en: Assets/_Examen/Scripts/WebApiTest.cs
+  - Cambia el campo "cardName" en el Inspector, o
+  - Conecta WebApiTest.Buscar() al OnClick de un boton.
+
+Otras APIs publicas de respaldo (por si piden otra):
+  https://api.agify.io/?name=israel          (predice edad por nombre)
+  https://catfact.ninja/fact                 (dato random)
+  https://pokeapi.co/api/v2/pokemon/pikachu  (datos de pokemon)

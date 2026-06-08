@@ -1,0 +1,122 @@
+// ============================================================
+//  PLANTILLA P5 - SERVICIO WEB + Cloud Firestore
+//  COMO ACTIVAR:
+//   1) Importa FirebaseFirestore.unitypackage del SDK de Firebase.
+//   2) Coloca google-services.json en Assets/
+//   3) Renombra de  FirestoreInitialize.cs.txt  a  FirestoreInitialize.cs
+//  Flujo: API REST (HTTP GET) -> deserializa JSON -> guarda en Firestore
+//         y luego permite leer desde una escena AR (ver CardScript).
+// ============================================================
+using Firebase.Extensions;
+using Firebase.Firestore;
+using System.Collections;
+using System.Collections.Generic;
+using TMPro;
+using UnityEngine;
+using UnityEngine.Networking;
+
+public class FirestoreInitialize : MonoBehaviour
+{
+    private static FirebaseFirestore firestore;
+    [SerializeField] private TMP_InputField cardNameInput;
+
+    private void Awake()
+    {
+        if (FindObjectsByType<FirestoreInitialize>(FindObjectsSortMode.None).Length > 1)
+        {
+            Destroy(gameObject);
+            return;
+        }
+        DontDestroyOnLoad(this);
+        firestore = FirebaseFirestore.DefaultInstance;
+    }
+
+    // Llamar desde el boton "Registro"
+    public void FetchAndStoreCardData()
+    {
+        StartCoroutine(GetCardData(cardNameInput.text));
+    }
+
+    private IEnumerator GetCardData(string cardName)
+    {
+        string url = $"https://db.ygoprodeck.com/api/v7/cardinfo.php?name={UnityWebRequest.EscapeURL(cardName)}";
+        UnityWebRequest request = UnityWebRequest.Get(url);
+        yield return request.SendWebRequest();
+
+        if (request.result == UnityWebRequest.Result.Success)
+            ProcessCardData(request.downloadHandler.text);
+        else
+            Debug.LogError("Error obteniendo datos: " + request.error);
+    }
+
+    private void ProcessCardData(string json)
+    {
+        var cardData = JsonUtility.FromJson<CardDataResponse>(json);
+        if (cardData != null && cardData.data != null && cardData.data.Length > 0)
+        {
+            var card = cardData.data[0];
+            string collection = DetermineCollection(card.type);
+
+            DocumentReference docRef = firestore
+                .Collection("Cartas").Document(collection)
+                .Collection(card.name).Document("Datos");
+
+            var cardInfo = new Dictionary<string, object>
+            {
+                { "ATK", card.atk }, { "DEF", card.def },
+                { "Desc", card.desc }, { "Level", card.level },
+            };
+
+            docRef.SetAsync(cardInfo).ContinueWithOnMainThread(task =>
+            {
+                if (task.IsCompleted && !task.IsFaulted)
+                    Debug.Log($"Datos de {card.name} almacenados correctamente");
+                else
+                    Debug.LogError("Error guardando datos: " + task.Exception);
+            });
+        }
+        else Debug.LogError("Carta no encontrada o respuesta invalida");
+    }
+
+    // Lectura desde la escena AR (la usa CardScript al detectar un marcador)
+    public void FetchCardDataFromFirestore(string cardName, TMP_Text displayText)
+    {
+        foreach (string collection in new[] { "Monstruo", "Magia", "Trampa", "Otros" })
+        {
+            DocumentReference docRef = firestore
+                .Collection("Cartas").Document(collection)
+                .Collection(cardName).Document("Datos");
+
+            docRef.GetSnapshotAsync().ContinueWithOnMainThread(task =>
+            {
+                if (task.IsCompleted && !task.IsFaulted && task.Result.Exists)
+                {
+                    var d = task.Result.ToDictionary();
+                    displayText.text = $"{cardName}\nATK: {d["ATK"]}  DEF: {d["DEF"]}\nNivel: {d["Level"]}";
+                }
+            });
+        }
+    }
+
+    public string DetermineCollection(string cardType)
+    {
+        if (cardType.Contains("Monster")) return "Monstruo";
+        if (cardType.Contains("Spell")) return "Magia";
+        if (cardType.Contains("Trap")) return "Trampa";
+        return "Otros";
+    }
+}
+
+[System.Serializable]
+public class CardDataResponse { public CardData[] data; }
+
+[System.Serializable]
+public class CardData
+{
+    public string name;
+    public string type;
+    public string desc;
+    public int atk;
+    public int def;
+    public int level;
+}

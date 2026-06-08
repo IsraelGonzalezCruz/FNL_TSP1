@@ -1,0 +1,12 @@
+{
+    "asset": "3861faa3d42246e4f9b3832a3213ff14",
+    "fileName": "019ea7a6-a52a-76c8-b5d0-0e32fd3bc6f2_Preview.jpg",
+    "prompt": "natural wood material with realistic grains, polished finish, brown tones, seamless tileable texture",
+    "negativePrompt": "",
+    "model": "realistic-textures-3-0",
+    "modelName": "Realistic Textures 3.0",
+    "customSeed": 792494100,
+    "w3CTraceId": "",
+    "feedback": 0,
+    "refinementMode": "Generation"
+}

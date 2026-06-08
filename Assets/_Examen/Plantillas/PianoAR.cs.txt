@@ -1,0 +1,50 @@
+// ============================================================
+//  PLANTILLA AR - PianoAR.cs (interaccion por toque/clic sobre teclas)
+//  COMO ACTIVAR:
+//   - Usa el Input "clasico". Si tu proyecto esta solo en el Input System nuevo:
+//     Player Settings -> Active Input Handling = Both
+//   - Renombra de  PianoAR.cs.txt  a  PianoAR.cs
+//  Dispara un AudioClip segun el nombre del objeto golpeado por el Raycast.
+// ============================================================
+using UnityEngine;
+
+public class PianoAR : MonoBehaviour
+{
+    public AudioClip[] clips;     // Do, Re, Mi, Fa, Sol, La, Si
+    public AudioSource audioSource;
+    private string btnName;
+
+    void Start()
+    {
+        audioSource = GetComponent<AudioSource>();
+    }
+
+    void Update()
+    {
+        // Clic con mouse (editor / PC)
+        if (Input.GetMouseButtonDown(0))
+            TryPlay(Camera.main.ScreenPointToRay(Input.mousePosition));
+
+        // Toque (celular)
+        else if (Input.touchCount > 0 && Input.touches[0].phase == TouchPhase.Began)
+            TryPlay(Camera.main.ScreenPointToRay(Input.GetTouch(0).position));
+    }
+
+    void TryPlay(Ray ray)
+    {
+        if (Physics.Raycast(ray, out RaycastHit hit))
+        {
+            btnName = hit.transform.name;
+            int index = btnName switch
+            {
+                "Do" => 0, "Re" => 1, "Mi" => 2, "Fa" => 3,
+                "Sol" => 4, "La" => 5, "Si" => 6, _ => -1
+            };
+            if (index >= 0 && index < clips.Length)
+            {
+                audioSource.clip = clips[index];
+                audioSource.Play();
+            }
+        }
+    }
+}

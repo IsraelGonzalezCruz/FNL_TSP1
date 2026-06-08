@@ -1,0 +1,39 @@
+// ============================================================
+//  PLANTILLA P5 - Escena AR (Vuforia) que lee de Firestore
+//  COMO ACTIVAR:
+//   1) Necesita Vuforia + Firestore activos (ver FirestoreInitialize).
+//   2) Renombra de  CardScript.cs.txt  a  CardScript.cs
+//  Conecta OnTargetFound al "Default Observer Event Handler" del Image Target.
+//  El NOMBRE del Image Target debe COINCIDIR con el id de la carta en la BD.
+// ============================================================
+using UnityEngine;
+using TMPro;
+
+public class CardScript : MonoBehaviour
+{
+    public TMP_Text displayText;
+    public FirestoreInitialize cardAccess;
+
+    void Start()
+    {
+        cardAccess = GameObject.FindGameObjectWithTag("BD").GetComponent<FirestoreInitialize>();
+    }
+
+    // Asignar al evento OnTargetFound del Image Target
+    public void OnTargetFound(Transform imageTargetTransform)
+    {
+        string cardName = imageTargetTransform.name;
+        Debug.Log($"Carta encontrada {cardName}");
+        displayText = imageTargetTransform.Find("Text").GetComponent<TextMeshPro>();
+        if (displayText != null)
+            cardAccess.FetchCardDataFromFirestore(cardName, displayText);
+        else
+            Debug.LogError("Objeto de texto no encontrado");
+    }
+
+    public void OnTargetLost(Transform imageTargetTransform)
+    {
+        displayText = imageTargetTransform.Find("Text").GetComponent<TextMeshPro>();
+        if (displayText != null) displayText.text = "Buscando carta...";
+    }
+}

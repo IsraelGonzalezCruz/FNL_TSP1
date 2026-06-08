@@ -1,0 +1,70 @@
+// ============================================================
+//  PLANTILLA P4 - INTERFAZ SOFTWARE/HARDWARE (Comunicacion Serial / ESP32)
+//  COMO ACTIVAR:
+//   1) Player Settings -> Other Settings -> Api Compatibility Level = .NET Framework
+//      (necesario para que exista System.IO.Ports.SerialPort)
+//   2) Renombra de  SerialController.cs.txt  a  SerialController.cs
+//   3) Ajusta el puerto (COM12) y baudios (9600) a tu ESP32.
+//  Recibe "X|Z" del joystick (movimiento) y envia "1"/"0" al colisionar (LED).
+// ============================================================
+using System.IO.Ports;
+using UnityEngine;
+
+public class SerialController : MonoBehaviour
+{
+    public string portName = "COM12";
+    public int baudRate = 9600;
+    public float speed = 5f;
+
+    private SerialPort serialPort;
+    private bool portOpen = false;
+
+    void Start()
+    {
+        serialPort = new SerialPort(portName, baudRate);
+        serialPort.ReadTimeout = 50;
+        try
+        {
+            serialPort.Open();
+            portOpen = true;
+            Debug.Log("Puerto abierto");
+        }
+        catch (System.Exception ex)
+        {
+            Debug.LogError("Error en la comunicacion: " + ex.Message);
+        }
+    }
+
+    void Update()
+    {
+        if (!portOpen) return;
+        try
+        {
+            string[] data = serialPort.ReadLine().Trim().Split('|');
+            float x = float.Parse(data[0]);
+            float z = float.Parse(data[1]);
+            Vector3 movement = new Vector3(x, 0, z) * speed * Time.deltaTime;
+            transform.Translate(movement);
+        }
+        catch (System.Exception ex)
+        {
+            Debug.LogWarning("Lectura: " + ex.Message);
+        }
+    }
+
+    private void OnTriggerEnter(Collider other)
+    {
+        Debug.Log("Colision con " + other.name);
+        if (portOpen) serialPort.Write("1"); // enciende LED
+    }
+
+    private void OnTriggerExit(Collider other)
+    {
+        if (portOpen) serialPort.Write("0"); // apaga LED
+    }
+
+    private void OnApplicationQuit()
+    {
+        if (portOpen) serialPort.Close();
+    }
+}

@@ -1,0 +1,139 @@
+// ============================================================
+//  PLANTILLA P3 - BASE DE DATOS (Firebase Realtime Database)
+//  COMO ACTIVAR:
+//   1) Importa el SDK de Firebase (FirebaseDatabase.unitypackage).
+//   2) Coloca google-services.json en Assets/StreamingAssets/
+//   3) Renombra este archivo de  BD.cs.txt  a  BD.cs
+//  Tipos demostrados: string, int, bool y objeto JSON anidado.
+// ============================================================
+using Firebase;
+using Firebase.Database;
+using Firebase.Extensions;
+using Newtonsoft.Json;
+using System.Collections.Generic;
+using TMPro;
+using UnityEngine;
+using UnityEngine.UI;
+
+public class BD : MonoBehaviour
+{
+    public DatabaseReference reference;
+    [SerializeField] TMP_InputField textoNombre;
+    [SerializeField] TMP_InputField textoEdad;
+    [SerializeField] Button botonRegistro;
+    [SerializeField] Button botonCarga;
+    public bool registroBooleano = true;
+
+    private void Awake()
+    {
+        if (botonRegistro != null) botonRegistro.interactable = false;
+        if (botonCarga != null) botonCarga.interactable = false;
+
+        FirebaseApp.CheckAndFixDependenciesAsync().ContinueWithOnMainThread(task =>
+        {
+            if (task.Result == DependencyStatus.Available)
+            {
+                reference = FirebaseDatabase.DefaultInstance.RootReference;
+                Debug.Log("Firebase inicializado correctamente.");
+                if (botonRegistro != null) botonRegistro.interactable = true;
+                if (botonCarga != null) botonCarga.interactable = true;
+            }
+            else Debug.LogError("Firebase no pudo inicializarse: " + task.Result);
+        });
+    }
+
+    public void Booleano(bool toggleB) { registroBooleano = toggleB; }
+
+    public void Registro()
+    {
+        if (reference == null) { Debug.LogError("Firebase no esta listo aun."); return; }
+
+        // string con clave unica (multiples registros)
+        string key = reference.Child("Nombre").Push().Key;
+        reference.Child("Nombre").Child(key).SetValueAsync(textoNombre.text);
+
+        // entero
+        reference.Child("Numero").SetValueAsync(int.Parse(textoEdad.text));
+
+        // booleano
+        reference.Child("Booleano").SetValueAsync(registroBooleano);
+
+        // objeto JSON
+        Usuario usuario = new Usuario("Mario", "mario@gmail.com");
+        string json = JsonUtility.ToJson(usuario);
+        reference.Child("Usuario").SetRawJsonValueAsync(json);
+
+        // actualizacion (sobrescritura)
+        reference.Child("Escuela").SetValueAsync("UNAM");
+        reference.Child("Escuela").SetValueAsync("POLI");
+        reference.Child("Anio").SetValueAsync(2025);
+        reference.Child("Anio").SetValueAsync(2026);
+    }
+
+    public void CargaBD()
+    {
+        if (reference == null) { Debug.LogError("Firebase no esta listo aun."); return; }
+
+        reference.Child("Anio").GetValueAsync().ContinueWithOnMainThread(task =>
+        {
+            if (task.IsFaulted) Debug.Log("Error: " + task.Exception);
+            else if (task.IsCompleted)
+            {
+                DataSnapshot snapshot = task.Result;
+                Debug.Log("Tipo: " + snapshot.Value.GetType());
+                Debug.Log("Valor: " + snapshot.Value.ToString());
+            }
+        });
+
+        reference.Child("Nombre").GetValueAsync().ContinueWithOnMainThread(task =>
+        {
+            if (task.IsFaulted) Debug.Log("Error: " + task.Exception);
+            else if (task.IsCompleted)
+            {
+                DataSnapshot snapshot = task.Result;
+                foreach (DataSnapshot child in snapshot.Children)
+                {
+                    Debug.Log("Tipo: " + child.Value.GetType());
+                    Debug.Log("Valor: " + child.Value.ToString());
+                }
+            }
+        });
+
+        reference.Child("Usuario").GetValueAsync().ContinueWithOnMainThread(task =>
+        {
+            if (task.IsFaulted) Debug.Log("Error: " + task.Exception);
+            else if (task.IsCompleted)
+            {
+                DataSnapshot snapshot = task.Result;
+                string rawJson = snapshot.GetRawJsonValue();
+                if (rawJson != null)
+                {
+                    Dictionary<string, object> userData =
+                        JsonConvert.DeserializeObject<Dictionary<string, object>>(rawJson);
+                    string nombre = (string)userData["UserName"];
+                    string email = (string)userData["Email"];
+                    Debug.Log($"Nombre: {nombre}, Email: {email}");
+                }
+                else Debug.Log("Nodo Usuario vacio.");
+            }
+        });
+
+        reference.Child("Booleano").GetValueAsync().ContinueWithOnMainThread(task =>
+        {
+            if (task.IsFaulted) Debug.Log("Error: " + task.Exception);
+            else if (task.IsCompleted)
+            {
+                DataSnapshot snapshot = task.Result;
+                Debug.Log("Tipo: " + snapshot.Value.GetType());
+                Debug.Log("Valor: " + snapshot.Value.ToString());
+            }
+        });
+    }
+}
+
+public class Usuario
+{
+    public string UserName;
+    public string Email;
+    public Usuario(string username, string email) { this.UserName = username; this.Email = email; }
+}
