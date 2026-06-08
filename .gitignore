@@ -1,0 +1,54 @@
+# ---------------------------------------------------
+# .gitignore para proyectos Unity (Examen TSP - VR/AR)
+# Ignora todo lo que Unity REGENERA solo -> mantiene el repo ligero
+# ---------------------------------------------------
+
+# Carpetas generadas por Unity
+/[Ll]ibrary/
+/[Tt]emp/
+/[Oo]bj/
+/[Bb]uild/
+/[Bb]uilds/
+/[Ll]ogs/
+/[Uu]ser[Ss]ettings/
+/[Mm]emoryCaptures/
+/[Rr]ecordings/
+
+# Assets que Unity importa/genera
+/[Aa]ssets/AssetStoreTools*
+/[Aa]ssets/StreamingAssets/aa.meta
+/[Aa]ssets/StreamingAssets/aa/*
+
+# Archivos de soluciones / IDE (se regeneran)
+.vs/
+.vsconfig
+.gradle/
+ExportedObj/
+*.csproj
+*.unityproj
+*.sln
+*.suo
+*.tmp
+*.user
+*.userprefs
+*.pidb
+*.booproj
+*.svd
+*.pdb
+*.mdb
+*.opendb
+*.VC.db
+
+# Builds
+*.apk
+*.aab
+*.unitypackage
+*.app
+
+# Crashlytics / logs
+crashlytics-build.properties
+sysinfo.txt
+
+# OS
+.DS_Store
+Thumbs.db
